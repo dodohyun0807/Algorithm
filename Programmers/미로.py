@@ -1,80 +1,45 @@
-def solution(maps):
-    mapLen = len(maps[0])
-    startIdx = [0, 0]
-    labIdx = [0, 0]
-    visited = []
-    xx = [1, 0, -1, 0]
-    yy = [0, -1, 0, 1]
-    cntL, cntE = 0, 0
+from collections import deque
 
-    # start지점 찾고 방문 배열에 방문으로 처리하기
-    for i in range(len(maps)):
-        visitArr = []
-        for j in range(mapLen):
-            visitArr.append(0)
-            if maps[i][j] == "S":
-                startIdx[0], startIdx[1] = i, j
-                visitArr.pop()
-                visitArr.append(1)
-            if maps[i][j] == "L":
-                labIdx[0], labIdx[1] = i, j
-        visited.append(visitArr)
+def bfs(start, end, maps):
+    dy = [0, 1, -1, 0]
+    dx = [1, 0, 0, -1]
+    
+    n = len(maps)      
+    m = len(maps[0])    
+    visited = [[False]*m for _ in range(n)]
+    que = deque()
 
-    # 시작인덱스 기준으로 dfs시작
-    def dfs(x, y, cnt, t, labCnt, extCnt):
+    for i in range(n):
+        for j in range(m):
+            if maps[i][j] == start:      
+                que.append((i, j, 0))    
+                visited[i][j] = True
+                break 
+                
+    # BFS 알고리즘 수행 (핵심)
+    while que:
+        y, x, cost = que.popleft()
+        
+        if maps[y][x] == end:
+            return cost
+        
         for i in range(4):
-            dx = x + xx[i]
-            dy = y + yy[i]
-            if t == "L":
-                if (
-                    0 <= dx < mapLen
-                    and 0 <= dy < len(maps)
-                    and maps[dy][dx] != "X"
-                    and visited[dy][dx] == 0
-                ):
-                    print(maps[dy][dx])
-                    if maps[dy][dx] == "L":
-                        if cnt + 1 < labCnt:
-                            labCnt = cnt + 1
-                            cntL = labCnt
-                        print(cntL)
-                        continue
-                    visited[dy][dx] = 1
-                    dfs(dx, dy, cnt + 1, t, labCnt, extCnt)
-
-            elif t == "E":
-                if (
-                    0 <= dx < mapLen
-                    and 0 <= dy < len(maps)
-                    and maps[dy][dx] != "X"
-                    and visited[dy][dx] == 0
-                ):
-                    if maps[dy][dx] == "E":
-                        if cnt + 1 < extCnt:
-                            extCnt = cnt + 1
-                        return extCnt
-                    visited[dy][dx] = 1
-                    dfs(dx, dy, cnt + 1, t, labCnt, extCnt)
-
-    dfs(startIdx[0], startIdx[1], 0, "L", 987654321, 987654321)
-
-    for i in range(len(visited)):
-        for j in range(mapLen):
-            visited[i][j] = 0
-
-    dfs(labIdx[0], labIdx[1], 0, "E", 987654321, 987654321)
-
-    return
-
-
-# ============================================================================================================================================================
-
-arr = [
-    ["SOOOL", "XXXXO", "OOOOO", "OXXXX", "OOOOE"],
-    ["LOOXS", "OOOOX", "OOOOO", "OOOOO", "EOOOO"],
-    ["SOOOO", "OOOOO", "OOOOO", "OOOOO", "OOOLE"],
-]
-
-for i in arr:
-    solution(i)
-    print("=============================")
+            ny = y + dy[i]
+            nx = x + dx[i]
+            
+            if 0<= ny <n and 0<= nx <m and maps[ny][nx] !='X':
+                if not visited[ny][nx]:
+                    que.append((ny, nx, cost+1))
+                    visited[ny][nx] = True
+                    
+    return -1
+        
+            
+def solution(maps):
+    path1 = bfs('S', 'L', maps)	
+    path2 = bfs('L', 'E', maps)
+    
+    if path1 != -1 and path2 != -1:
+        return path1 + path2
+        
+    return -1
